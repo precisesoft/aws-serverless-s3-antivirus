@@ -1,0 +1,8 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "clamav"
+resolve_s3 = true
+s3_prefix = "clamav"
+region = "us-gov-west-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = ["clamavfn=129803615642.dkr.ecr.us-gov-west-1.amazonaws.com/clamavdfca6374/clamavfn74d3c1f6repo"]

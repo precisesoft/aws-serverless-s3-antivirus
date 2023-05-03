@@ -32,3 +32,22 @@ Resources:
       DockerTag: virus-scanner
       DockerContext: .
       Dockerfile: Dockerfile
+
+  DefinitionUpdateEvent:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Rule for Amazon CloudWatch Events to trigger a definition update
+      ScheduleExpression: "rate(1 hour)"
+      State: ENABLED
+      Targets:
+      - Arn: !GetAtt clamavfn.Arn
+        Id: DefinitionUpdateEvent
+        Input: '{"operation":"update","filename":"placeholdervalue"}'
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt clamavfn.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt DefinitionUpdateEvent.Arn

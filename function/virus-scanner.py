@@ -13,7 +13,7 @@ def lambda_handler(event, context):
         filename = event['filename']
 
         if operation == 'scan':
-            scan_cmd = 'clamscan -v ' + filename
+            scan_cmd = 'clamscan -v --max-filesize=4000M --max-scansize=4000M ' + filename
             sp = subprocess.Popen(scan_cmd,
                                     shell=True,
                                     stdout=subprocess.PIPE,

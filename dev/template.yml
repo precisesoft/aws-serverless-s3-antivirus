@@ -47,7 +47,7 @@ Resources:
     Properties:
       Description: Rule for Amazon CloudWatch Events to trigger a definition update
       ScheduleExpression: "rate(1 hour)"
-      State: ENABLED
+      State: DISABLED
       Targets:
       - Arn: !GetAtt clamavfn.Arn
         Id: DefinitionUpdateEvent

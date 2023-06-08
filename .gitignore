@@ -1,2 +1,3 @@
-.aws-sam/
+poc/.aws-sam/
+dev/.aws-sam/
 .vagrant/

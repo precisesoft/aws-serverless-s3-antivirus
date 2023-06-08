@@ -1,0 +1,87 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  DefinitionUpdateEvent:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Rule for Amazon CloudWatch Events to trigger a definition update
+      ScheduleExpression: rate(1 hour)
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::GetAtt:
+          - clamavfn
+          - Arn
+        Id: DefinitionUpdateEvent
+        Input: '{"operation":"update","filename":"placeholdervalue"}'
+    Metadata:
+      SamResourceId: DefinitionUpdateEvent
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - clamavfn
+        - Arn
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - DefinitionUpdateEvent
+        - Arn
+    Metadata:
+      SamResourceId: LambdaPermission
+  clamavfn:
+    Type: AWS::Lambda::Function
+    Metadata:
+      DockerContext: "/vagrant"
+      DockerTag: virus-scanner
+      Dockerfile: Dockerfile
+      SamResourceId: clamavfn
+    Properties:
+      Code:
+        ImageUri: 129803615642.dkr.ecr.us-gov-west-1.amazonaws.com/clamavdfca6374/clamavfn74d3c1f6repo:clamavfn-f5921c305e6c-virus-scanner
+      PackageType: Image
+      Description: Runs a container of ClamAV to either scan files on EFS or update
+        the virus definition database on EFS
+      FunctionName: clamavfn
+      MemorySize: 2048
+      Role: "arn:aws-us-gov:iam::227474134366:role/clamavfnRole"
+      Timeout: 300
+      VpcConfig:
+        SecurityGroupIds:
+        - Fn::ImportValue: ESGStack-MFTDMZSecurityGroup
+        SubnetIds:
+        - subnet-062c6cea0b9281693
+        - subnet-0b5c1a5bc7ead824f
+      Tags:
+      - Key: lambda:createdBy
+        Value: SAM
+      TracingConfig:
+        Mode: Active
+      FileSystemConfigs:
+      - Arn:
+          Fn::ImportValue: ESGStack-DMSEFSCLAMAVAP
+        LocalMountPath: "/mnt/dmzefs"
+  # clamavfnRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Action:
+  #         - sts:AssumeRole
+  #         Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #     ManagedPolicyArns:
+  #     - arn:aws-us-gov:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  #     - arn:aws-us-gov:iam::aws:policy/AWSXRayDaemonWriteAccess
+  #     - arn:aws-us-gov:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+  #     - arn:aws-us-gov:iam::aws:policy/AWSLambda_ReadOnlyAccess
+  #     - arn:aws-us-gov:iam::aws:policy/AWSXrayWriteOnlyAccess
+  #     - arn:aws-us-gov:iam::aws:policy/AmazonElasticFileSystemFullAccess
+  #     Tags:
+  #     - Key: lambda:createdBy
+  #       Value: SAM

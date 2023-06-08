@@ -1,0 +1,10 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "esg-clamav"
+resolve_s3 = true
+s3_prefix = "esg-clamav"
+region = "us-gov-west-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = ["clamavfn=227474134366.dkr.ecr.us-gov-west-1.amazonaws.com/clamavfn"]
+parameter_overrides = "vpcstackDMZSUBNET1A=\"subnet-062c6cea0b9281693\" vpcstackDMZSUBNET1B=\"subnet-0b5c1a5bc7ead824f\""
+confirm_changeset = true

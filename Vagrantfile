@@ -22,9 +22,9 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "~/.aws", "/home/vagrant/.aws"
   #config.vm.synced_folder "C:/Users/Walter.Deignan/GitHub/aws-serverless-s3-antivirus/aws-serverless-s3-antivirus", "/antivirus"
 
-  config.vm.network :forwarded_port, guest: 8000, host: 8000
-  config.vm.network :forwarded_port, guest: 8443, host: 8443
-  config.vm.network "private_network", ip: "192.168.56.30"
+  config.vm.network :forwarded_port, guest: 9000, host: 9000
+  config.vm.network :forwarded_port, guest: 9443, host: 9443
+  # config.vm.network "private_network", ip: "192.168.56.30"
 
   config.vm.provision "shell", inline: <<-SHELL
 

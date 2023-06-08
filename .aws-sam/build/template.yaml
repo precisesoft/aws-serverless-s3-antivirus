@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  clamavfn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: clamavfn
+      PackageType: Image
+      Description: Runs a container of ClamAV to either scan files on EFS or update
+        the virus definition database on EFS
+      Timeout: 300
+      MemorySize: 2048
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AWSLambda_ReadOnlyAccess
+      - AWSXrayWriteOnlyAccess
+      - AmazonElasticFileSystemFullAccess
+      - AWSLambdaVPCAccessExecutionRole
+      Tracing: Active
+      VpcConfig:
+        SecurityGroupIds:
+        - Fn::ImportValue: ESGPOCStack-MFTDMZSecurityGroup
+        SubnetIds:
+        - Fn::ImportValue: vpc-stack-DMZSUBNET1A
+        - Fn::ImportValue: vpc-stack-DMZSUBNET1B
+      FileSystemConfigs:
+      - Arn:
+          Fn::ImportValue: ESGPOCStack-DMSEFSCLAMAVAP
+        LocalMountPath: /mnt/dmzefs
+      ImageUri: clamavfn:virus-scanner
+    Metadata:
+      DockerContext: /vagrant
+      DockerTag: virus-scanner
+      Dockerfile: Dockerfile
+      SamResourceId: clamavfn
+  DefinitionUpdateEvent:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Rule for Amazon CloudWatch Events to trigger a definition update
+      ScheduleExpression: rate(1 hour)
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::GetAtt:
+          - clamavfn
+          - Arn
+        Id: DefinitionUpdateEvent
+        Input: '{"operation":"update","filename":"placeholdervalue"}'
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - clamavfn
+        - Arn
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - DefinitionUpdateEvent
+        - Arn
